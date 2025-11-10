@@ -7,7 +7,7 @@ use pinocchio::{
 
 use crate::data::{mint::MintInstructionData, Serialize};
 
-/// Create an asset
+/// Mint an asset (use after Create)
 ///
 /// ### Accounts:
 ///   0. `[WRITE]` Token Account

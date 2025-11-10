@@ -11,7 +11,9 @@ pub mod instructions;
 pub(crate) enum Instructions {
     Burn = 41,
     Create = 42,
+    Mint = 43,
     Transfer = 49,
+    _Update = 50,
 }
 
 pub const MPL_TOKEN_METADATA_ID: Pubkey = pubkey!("metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s");
