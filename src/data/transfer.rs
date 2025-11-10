@@ -3,7 +3,7 @@ use crate::{data::Serialize, Instructions};
 pub struct TransferInstructionData {
     pub amount: u64,
     /// Required authorization data to validate the request.
-    authorization_data: Option<AuthorizationData>,
+    pub authorization_data: Option<AuthorizationData>,
 }
 
 pub struct AuthorizationData {}
