@@ -1,7 +1,8 @@
+use bytemuck::{Pod, Zeroable};
 use pinocchio::pubkey::Pubkey;
 
 use crate::{
-    data::{royalties::Creator, Serialize},
+    data::{nft::Creator, Serialize},
     Instructions,
 };
 
@@ -90,8 +91,10 @@ impl Serialize for TokenStandard {
     }
 }
 
+#[derive(Pod, Zeroable, Clone, Copy)]
+#[repr(C)]
 pub struct Collection {
-    pub verified: bool,
+    pub verified: u8, // this is a bool
     pub key: Pubkey,
 }
 

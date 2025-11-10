@@ -6,7 +6,7 @@
 use bytemuck::{Pod, Zeroable, try_cast_slice};
 use pinocchio::{program_error::ProgramError, pubkey::Pubkey};
 
-use crate::data::{DeserializeSized, Serialize};
+use crate::data::{DeserializeSized, Serialize, create::Collection};
 
 /// Maximum number of characters in a metadata name.
 pub const MAX_NAME_LENGTH: usize = 32;
@@ -47,18 +47,19 @@ impl Serialize for Creator {
     }
 }
 
-pub struct RoyaltiesInfo<'a> {
+pub struct Info<'a> {
     pub basis_points: u16,
     pub creators: &'a [Creator],
+    pub collection: Option<&'a Collection>,
 }
 
 // For now, all I need is to be able to deserialize royalties and nothing else
 // Since I know the exact length of all fields before the royalties, I can very conveniently just skip all of the bytes
 // Just like in the mpl core lib, the metaplex gods have bestowed upon me a struct with no alignment needs, so I can just
 // zero copy the whole thing
-pub fn read_royalties<'a>(
+pub fn read_royalties_and_collection<'a>(
     bytes: &'a [u8],
-) -> Result<RoyaltiesInfo<'a>, ProgramError> {
+) -> Result<Info<'a>, ProgramError> {
     // I can skip everything but I'm just going to check that the Key is correct
     if bytes[0] != 4 {
         return Err(ProgramError::InvalidAccountData);
@@ -77,26 +78,59 @@ pub fn read_royalties<'a>(
     // read the option discriminator
     let option_disc = bytes[offset];
     offset += 1;
-    if option_disc == 0 {
-        return Ok(RoyaltiesInfo {
-            basis_points,
-            creators: &[],
-        });
+
+    let creators = match option_disc {
+        0 => {
+            &[]
+        },
+        _ => {
+            // read the len
+            let num_creators = usize::try_from(u32::deserialize(&bytes[offset..])?)
+                .map_err(|_| ProgramError::ArithmeticOverflow)?;
+            offset += size_of::<u32>();
+            let creators_start = offset;
+            let creators_end = creators_start + (num_creators * size_of::<Creator>());
+        
+            // read the creators
+            let creators: &[Creator] = try_cast_slice(&bytes[creators_start..creators_end])
+                .map_err(|_| ProgramError::InvalidAccountData)?;
+            offset += creators_end;
+
+            creators
+        }
+    };
+
+    // skip over some more stuff
+    let _primary_sale_happened = bytes[offset];
+    offset += 1;
+    let _is_mutable = bytes[offset];
+    offset += 1;
+
+    // Option<TokenStandard>
+    match bytes[offset] {
+        0 => {
+            offset += 1;
+        },
+        _ => {
+            offset += 2;
+        }
     }
 
-    // read the len
-    let num_creators = usize::try_from(u32::deserialize(&bytes[offset..])?)
-        .map_err(|_| ProgramError::ArithmeticOverflow)?;
-    offset += size_of::<u32>();
-    let creators_start = offset;
-    let creators_end = creators_start + (num_creators * size_of::<Creator>());
+    // collection is an Option<Collection>
+    // the collection also has no alignment needs, so just zero copy the entire thing
+    let collection = match bytes[offset] {
+        0 => {
+            None
+        },
+        _ => {
+            offset += 1;
+            Some(bytemuck::from_bytes(&bytes[offset..offset + size_of::<Collection>()]))
+        }
+    };
 
-    // read the creators
-    let creators: &[Creator] = try_cast_slice(&bytes[creators_start..creators_end])
-        .map_err(|_| ProgramError::InvalidAccountData)?;
-
-    Ok(RoyaltiesInfo {
+    Ok(Info {
         basis_points,
         creators,
+        collection
     })
 }
