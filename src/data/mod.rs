@@ -5,6 +5,7 @@ pub mod create;
 pub mod mint;
 pub mod nft;
 pub mod transfer;
+pub mod verify;
 
 pub trait Serialize {
     /// Serialize into a slice, starting at 0, returning how many bytes were written
