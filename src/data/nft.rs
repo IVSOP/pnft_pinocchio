@@ -3,10 +3,10 @@
 // but their pnft diagram thing does show it
 // these are all the constants I could find:
 
-use bytemuck::{Pod, Zeroable, try_cast_slice};
+use bytemuck::{try_cast_slice, Pod, Zeroable};
 use pinocchio::{program_error::ProgramError, pubkey::Pubkey};
 
-use crate::data::{DeserializeSized, Serialize, create::Collection};
+use crate::data::{create::Collection, DeserializeSized, Serialize};
 
 /// Maximum number of characters in a metadata name.
 pub const MAX_NAME_LENGTH: usize = 32;
@@ -57,9 +57,7 @@ pub struct Info<'a> {
 // Since I know the exact length of all fields before the royalties, I can very conveniently just skip all of the bytes
 // Just like in the mpl core lib, the metaplex gods have bestowed upon me a struct with no alignment needs, so I can just
 // zero copy the whole thing
-pub fn read_royalties_and_collection<'a>(
-    bytes: &'a [u8],
-) -> Result<Info<'a>, ProgramError> {
+pub fn read_royalties_and_collection<'a>(bytes: &'a [u8]) -> Result<Info<'a>, ProgramError> {
     // I can skip everything but I'm just going to check that the Key is correct
     if bytes[0] != 4 {
         return Err(ProgramError::InvalidAccountData);
@@ -80,9 +78,7 @@ pub fn read_royalties_and_collection<'a>(
     offset += 1;
 
     let creators = match option_disc {
-        0 => {
-            &[]
-        },
+        0 => &[],
         _ => {
             // read the len
             let num_creators = usize::try_from(u32::deserialize(&bytes[offset..])?)
@@ -90,7 +86,7 @@ pub fn read_royalties_and_collection<'a>(
             offset += size_of::<u32>();
             let creators_start = offset;
             let creators_end = creators_start + (num_creators * size_of::<Creator>());
-        
+
             // read the creators
             let creators: &[Creator] = try_cast_slice(&bytes[creators_start..creators_end])
                 .map_err(|_| ProgramError::InvalidAccountData)?;
@@ -110,7 +106,7 @@ pub fn read_royalties_and_collection<'a>(
     match bytes[offset] {
         0 => {
             offset += 1;
-        },
+        }
         _ => {
             offset += 2;
         }
@@ -119,18 +115,18 @@ pub fn read_royalties_and_collection<'a>(
     // collection is an Option<Collection>
     // the collection also has no alignment needs, so just zero copy the entire thing
     let collection = match bytes[offset] {
-        0 => {
-            None
-        },
+        0 => None,
         _ => {
             offset += 1;
-            Some(bytemuck::from_bytes(&bytes[offset..offset + size_of::<Collection>()]))
+            Some(bytemuck::from_bytes(
+                &bytes[offset..offset + size_of::<Collection>()],
+            ))
         }
     };
 
     Ok(Info {
         basis_points,
         creators,
-        collection
+        collection,
     })
 }

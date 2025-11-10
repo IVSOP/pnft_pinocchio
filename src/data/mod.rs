@@ -2,6 +2,7 @@ use pinocchio::{program_error::ProgramError, pubkey::Pubkey};
 
 pub mod burn;
 pub mod create;
+pub mod mint;
 pub mod nft;
 pub mod transfer;
 
