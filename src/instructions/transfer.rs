@@ -13,27 +13,29 @@ use crate::data::{transfer::TransferInstructionData, Serialize};
 ///   0. `[WRITE]` Token Account
 ///   1. `[]` Owner
 ///   2. `[WRITE]` Destination Token Account
-///   3. `[]` mint
-///   4. `[WRITE]` Metadata
-///   5. `[OPTIONAL]` Edition
-///   6. `[OPTIONAL, WRITE]` Owner Token Record
-///   7. `[OPTIONAL, WRITE]` Destination Token Record
-///   8. `[SIGNER]` Authority
-///   9. `[SIGNER, WRITE]` Payer
-///   10. `[]` System Program
-///   11. `[]` Sysvar Instructions
-///   12. `[]` SPL Token Program
-///   13. `[]` SPL Associated Token Program
-///   14. `[OPTIONAL]` Auth Rules Program
-///   15. `[OPTIONAL]` Auth Rules Account
-///   16. `[]` MPL Token Metadata
+///   3. `[]` New Owner
+///   4. `[]` mint
+///   5. `[WRITE]` Metadata
+///   6. `[OPTIONAL]` Edition
+///   7. `[OPTIONAL, WRITE]` Owner Token Record
+///   8. `[OPTIONAL, WRITE]` Destination Token Record
+///   9. `[SIGNER]` Authority
+///   10. `[SIGNER, WRITE]` Payer
+///   11. `[]` System Program
+///   12. `[]` Sysvar Instructions
+///   13. `[]` SPL Token Program
+///   14. `[]` SPL Associated Token Program
+///   15. `[OPTIONAL]` Auth Rules Program
+///   16. `[OPTIONAL]` Auth Rules Account
+///   17. `[]` MPL Token Metadata
 ///
 /// Accounts being optional is very cursed but mimics the behaviour of the official lib.
 /// Accounts set to None get replaced by mpl program's account.
-pub struct TransferV1<'a> {
+pub struct Transfer<'a> {
     pub src_token_account: &'a AccountInfo,
     pub owner: &'a AccountInfo,
     pub dest_token_account: &'a AccountInfo,
+    pub new_owner: &'a AccountInfo,
     pub mint: &'a AccountInfo,
     pub metadata: &'a AccountInfo,
     pub edition: Option<&'a AccountInfo>,
@@ -50,7 +52,7 @@ pub struct TransferV1<'a> {
     pub mpl_token_metadata: &'a AccountInfo,
 }
 
-impl TransferV1<'_> {
+impl Transfer<'_> {
     #[inline(always)]
     pub fn invoke(
         &self,
@@ -71,6 +73,7 @@ impl TransferV1<'_> {
             AccountMeta::writable(self.src_token_account.key()),
             AccountMeta::readonly(self.owner.key()),
             AccountMeta::writable(self.dest_token_account.key()),
+            AccountMeta::readonly(self.new_owner.key()),
             AccountMeta::readonly(self.mint.key()),
             AccountMeta::writable(self.metadata.key()),
             match self.edition {
@@ -116,6 +119,7 @@ impl TransferV1<'_> {
                 self.src_token_account,
                 self.owner,
                 self.dest_token_account,
+                self.new_owner,
                 self.mint,
                 self.metadata,
                 self.edition.unwrap_or(self.mpl_token_metadata),
