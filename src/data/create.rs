@@ -231,7 +231,7 @@ pub struct CreateAssetInstructionData<'a> {
 
 impl<'a> Serialize for CreateAssetInstructionData<'a> {
     fn serialize_to(&self, buffer: &mut [u8]) -> usize {
-        buffer[0] = Instructions::Create as u8;
+        buffer[0] = Instructions::Create.to_u8();
         let mut offset = 1;
 
         // instruction data is actually and enum so write the first byte

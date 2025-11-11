@@ -15,7 +15,7 @@ impl Serialize for AuthorizationData {
 
 impl Serialize for TransferInstructionData {
     fn serialize_to(&self, buffer: &mut [u8]) -> usize {
-        buffer[0] = Instructions::Transfer as u8;
+        buffer[0] = Instructions::Transfer.to_u8();
         let mut offset = 1;
 
         // instruction data is actually and enum so write the first byte

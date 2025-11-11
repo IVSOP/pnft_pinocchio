@@ -7,7 +7,7 @@ pub struct BurnInstructionData {
 
 impl Serialize for BurnInstructionData {
     fn serialize_to(&self, buffer: &mut [u8]) -> usize {
-        buffer[0] = Instructions::Burn as u8;
+        buffer[0] = Instructions::Burn.to_u8();
         let mut offset = 1;
 
         offset += self.amount.serialize_to(&mut buffer[offset..]);

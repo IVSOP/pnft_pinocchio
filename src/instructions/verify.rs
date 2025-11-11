@@ -92,7 +92,8 @@ impl Verify<'_> {
                 self.metadata,
                 self.collection_mint.unwrap_or(self.mpl_token_metadata),
                 self.collection_metadata.unwrap_or(self.mpl_token_metadata),
-                self.collection_master_edition.unwrap_or(self.mpl_token_metadata),
+                self.collection_master_edition
+                    .unwrap_or(self.mpl_token_metadata),
                 self.system_program,
                 self.sysvar_instructions,
                 self.mpl_token_metadata,
