@@ -81,11 +81,11 @@ impl Transfer<'_> {
                 None => AccountMeta::readonly(self.mpl_token_metadata.key()),
             },
             match self.owner_token_record {
-                Some(owner_token_record) => AccountMeta::readonly(owner_token_record.key()),
+                Some(owner_token_record) => AccountMeta::writable(owner_token_record.key()),
                 None => AccountMeta::readonly(self.mpl_token_metadata.key()),
             },
             match self.dest_token_record {
-                Some(dest_token_record) => AccountMeta::readonly(dest_token_record.key()),
+                Some(dest_token_record) => AccountMeta::writable(dest_token_record.key()),
                 None => AccountMeta::readonly(self.mpl_token_metadata.key()),
             },
             AccountMeta::readonly_signer(self.authority.key()),
