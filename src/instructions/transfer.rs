@@ -25,7 +25,7 @@ use crate::data::{transfer::TransferInstructionData, Serialize};
 ///   12. `[]` Sysvar Instructions
 ///   13. `[]` SPL Token Program
 ///   14. `[]` SPL Associated Token Program
-///   15. `[OPTIONAL]` Auth Rules Program
+///   15. `[]` Auth Rules Program. it says optional but doesn't work without it......
 ///   16. `[OPTIONAL]` Auth Rules Account
 ///   17. `[]` MPL Token Metadata
 ///
@@ -47,7 +47,7 @@ pub struct Transfer<'a> {
     pub sysvar_instructions: &'a AccountInfo,
     pub token_program: &'a AccountInfo,
     pub associated_token_program: &'a AccountInfo,
-    pub auth_rules_program: Option<&'a AccountInfo>,
+    pub auth_rules_program: &'a AccountInfo,
     pub auth_rules: Option<&'a AccountInfo>,
     pub mpl_token_metadata: &'a AccountInfo,
 }
@@ -94,10 +94,7 @@ impl Transfer<'_> {
             AccountMeta::readonly(self.sysvar_instructions.key()),
             AccountMeta::readonly(self.token_program.key()),
             AccountMeta::readonly(self.associated_token_program.key()),
-            match self.auth_rules_program {
-                Some(auth_rules_program) => AccountMeta::readonly(auth_rules_program.key()),
-                None => AccountMeta::readonly(self.mpl_token_metadata.key()),
-            },
+            AccountMeta::readonly(self.auth_rules_program.key()),
             match self.auth_rules {
                 Some(auth_rules) => AccountMeta::readonly(auth_rules.key()),
                 None => AccountMeta::readonly(self.mpl_token_metadata.key()),
@@ -131,7 +128,7 @@ impl Transfer<'_> {
                 self.sysvar_instructions,
                 self.token_program,
                 self.associated_token_program,
-                self.auth_rules_program.unwrap_or(self.mpl_token_metadata),
+                self.auth_rules_program,
                 self.auth_rules.unwrap_or(self.mpl_token_metadata),
             ],
             signers,
