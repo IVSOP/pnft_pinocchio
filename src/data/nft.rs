@@ -90,7 +90,7 @@ pub fn read_royalties_and_collection<'a>(bytes: &'a [u8]) -> Result<Info<'a>, Pr
             // read the creators
             let creators: &[Creator] = try_cast_slice(&bytes[creators_start..creators_end])
                 .map_err(|_| ProgramError::InvalidAccountData)?;
-            offset += creators_end;
+            offset = creators_end;
 
             creators
         }
@@ -102,15 +102,8 @@ pub fn read_royalties_and_collection<'a>(bytes: &'a [u8]) -> Result<Info<'a>, Pr
     let _is_mutable = bytes[offset];
     offset += 1;
 
-    // Option<TokenStandard>
-    match bytes[offset] {
-        0 => {
-            offset += 1;
-        }
-        _ => {
-            offset += 2;
-        }
-    }
+    // edition nonce and token standard
+    offset += 4;
 
     // collection is an Option<Collection>
     // the collection also has no alignment needs, so just zero copy the entire thing
