@@ -58,7 +58,7 @@ pub struct MetadataInfo<'a> {
 // Since I know the exact length of all fields before the royalties, I can very conveniently just skip all of the bytes
 // Just like in the mpl core lib, the metaplex gods have bestowed upon me a struct with no alignment needs, so I can just
 // zero copy the whole thing
-pub fn read_royalties_and_collection<'a>(bytes: &'a [u8]) -> Result<MetadataInfo<'a>, ProgramError> {
+pub fn read_metadata_info<'a>(bytes: &'a [u8]) -> Result<MetadataInfo<'a>, ProgramError> {
     // I can skip everything but I'm just going to check that the Key is correct
     if bytes[0] != 4 {
         return Err(ProgramError::InvalidAccountData);
