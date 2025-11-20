@@ -1,4 +1,4 @@
-Utility crate for CPI, serialization and deserialization of Metaplex Core assets in pinocchio
+Utility crate for CPI, serialization and deserialization of Programmable NFTs in pinocchio.
 
 WARNING: this is very much a work in progress. Currently the instructions expect the user to provide a buffer of sufficient size.
 

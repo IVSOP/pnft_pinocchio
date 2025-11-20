@@ -33,7 +33,7 @@ pub const EDITION_MARKER_BIT_SIZE: u64 = 248;
 #[repr(C)]
 pub struct Creator {
     pub address: Pubkey,
-    pub verified: u8, // this is a bool,
+    pub verified: u8, // this is a bool
     pub share: u8,
 }
 
