@@ -47,8 +47,9 @@ impl Serialize for Creator {
     }
 }
 
-pub struct Info<'a> {
+pub struct MetadataInfo<'a> {
     pub basis_points: u16,
+    pub mint: &'a Pubkey,
     pub creators: &'a [Creator],
     pub collection: Option<&'a Collection>,
 }
@@ -57,14 +58,25 @@ pub struct Info<'a> {
 // Since I know the exact length of all fields before the royalties, I can very conveniently just skip all of the bytes
 // Just like in the mpl core lib, the metaplex gods have bestowed upon me a struct with no alignment needs, so I can just
 // zero copy the whole thing
-pub fn read_royalties_and_collection<'a>(bytes: &'a [u8]) -> Result<Info<'a>, ProgramError> {
+pub fn read_royalties_and_collection<'a>(bytes: &'a [u8]) -> Result<MetadataInfo<'a>, ProgramError> {
     // I can skip everything but I'm just going to check that the Key is correct
     if bytes[0] != 4 {
         return Err(ProgramError::InvalidAccountData);
     }
 
+    // the mint starts at byte #33
+    let mint: &[u8; 32] = {
+        // bounds check so we can use unsafe
+        let mint_slice = bytes
+            .get(33..33 + 32)
+            .ok_or(ProgramError::InvalidAccountData)?;
+        
+        unsafe { &*(mint_slice.as_ptr() as *const [u8; 32]) }
+    };
+    
     // see the diagram https://github.com/metaplex-foundation/mpl-token-metadata/blob/main/programs/token-metadata/program/ProgrammableNFTGuide.md
     // it already has sizes. note that name has 4 bytes for the length + 200 for the actual string. this is absolutely completely retarded, btw, they are wasting space just because. who the fuck designed this?
+    // counting from 0, we can skip 319 bytes
     const BYTES_TO_SKIP: usize = 319;
     let mut offset = BYTES_TO_SKIP;
 
@@ -117,7 +129,8 @@ pub fn read_royalties_and_collection<'a>(bytes: &'a [u8]) -> Result<Info<'a>, Pr
         }
     };
 
-    Ok(Info {
+    Ok(MetadataInfo {
+        mint,
         basis_points,
         creators,
         collection,
